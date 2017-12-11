@@ -1,41 +1,50 @@
 <?php
-function DatabaseManager()
+class DatabaseManager
 {
-  if(isset($_SERVER['HTTP_APPNAME'])){        //SAE
-        $mysql_host = SAE_MYSQL_HOST_M;
-        $mysql_host_s = SAE_MYSQL_HOST_S;
-        $mysql_port = SAE_MYSQL_PORT;
-        $mysql_user = SAE_MYSQL_USER;
-        $mysql_password = SAE_MYSQL_PASS;
-        $mysql_database = SAE_MYSQL_DB;
+    private $db = null;
+    function __construct()
+    {
+        $dbms='mysql';     //数据库类型
+        $host='localhost'; //数据库主机名
+        $dbName='mysise';    //使用的数据库
+        $user='root';      //数据库连接用户名
+        $pass='';          //对应的密码
+        $dsn="$dbms:host=$host;dbname=$dbName";
+        try {
+            $this->db = new PDO($dsn, $user, $pass); //初始化一个PDO对象
+        } catch (PDOException $e) {
+            die ("Error!: " . $e->getMessage() . "<br/>");
+        }
     }
-  $con = mysql_connect($mysql_host.':'.$mysql_port, $mysql_user, $mysql_password);
-  if (!$con){
-		die('Could not connect: ' . mysql_error());
-	}
-  
-  mysql_query("SET NAMES 'UTF8'");
-  mysql_select_db($mysql_database, $con);
+    function __destruct()
+    {
+        $this->close();
+    }
+
   
   //增加
     function add($openid,$username,$password)
     {
-        $statement = "INSERT INTO `mysise` (`id`,`openid`, `username`, `password`) VALUES ( null,'".$openid."', '".$username."', '".$password."')";
-        return mysql_query($statement);
+	    $statement = "INSERT INTO `mysise` (`id`,`openid`, `username`, `password`) VALUES ( null,'".$openid."', '".$username."', '".$password."')";  
+	     return $this->db->exec($statement);
     }
 	//删除
     function delete($openid)
     {
-        $statement = "DELETE FROM `mysise` WHERE `openid` = '".$openid."';";
-        return mysql_query($statement);
+      $statement = "DELETE FROM `mysise` WHERE `openid` = '".$openid."'";
+      return $this->db->exec($statement);
     }
   //查询
     function query($openid)
     {
-        $statement = "SELECT * FROM `mysise` WHERE `openid` = '".$openid."'";
-        $result = mysql_query($mysql_state);
-        return $result;
+      $statement = "SELECT * FROM `mysise` WHERE `openid` = '".$openid."'";
+      $result = $this->db->query($statement);
+      return $result;
     }
-	mysql_close($con);
+	
+    function close()
+    {
+        $this->db = null;
+    }
 } 
 ?>

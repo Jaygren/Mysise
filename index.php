@@ -14,7 +14,7 @@
 require_once 'util/simple_html_dom.php';
 require_once 'util/MySiseUtil.php';
 require_once 'util/DatabaseManager.php';
-require_once 'util/isbind.php';
+require_once 'util/isBind.php';
 require_once 'sise/siseLogin.php';
 require_once 'sise/getPerson.php';
 require_once 'sise/getSchedule.php';
@@ -27,7 +27,6 @@ require_once 'sise/getWrongdoing.php';
 
 define("TOKEN", "TuoTuo");
 
-$cookie_file = tempnam("./","cookie");//cookie的文件保存路径
 
 $wechatObj = new wechatCallbackapiTest();
 if (!isset($_GET['echostr'])) {
@@ -67,17 +66,17 @@ class wechatCallbackapiTest
 
  public function responseMsg()
  {
-	 $postStr=$GLOBALS["HTTP_RAW_POST_DATA"];
+	 $postStr = isset($GLOBALS['HTTP_RAW_POST_DATA']) ? $GLOBALS['HTTP_RAW_POST_DATA'] : file_get_contents("php://input"); 
 	 if(!empty($postStr)){
 		 $postObj=simplexml_load_string($postStr,'SimpleXMLElement',LIBXML_NOCDATA);
 		 $RX_TYPE=trim($postObj->MsgType);
 		 switch($RX_TYPE)
 		 {
 			 case "text":
-			 $resultStr=$this->receiveText($postObj);
+			 $resultStr=$this->receiveText($postObj,$cookie_file = tempnam("./","cookie"));
 			 break;
 			 case "event":
-			 $resultStr=$this->receiveEvent($postObj);
+			 $resultStr=$this->receiveEvent($postObj,$cookie_file = tempnam("./","cookie"));
 			 break;
 			 default:
 			 $resultStr="";
@@ -89,38 +88,34 @@ class wechatCallbackapiTest
 		 exit;
 	 }
 	 }
-private function receiveText($object)
+private function receiveText($object,$cookie_file)
 {
-        if (preg_match('#(^\d{10})\+#',$object->Content))
-            {
-             $arr = explode('+',$object->Content);
-             $username =  $arr[0];
-             $password =  $arr[1];
-			 $result=isBind($object->FromUserName,$cookie_file);
-			 if($result==3){
-                    $dbm = new DatabaseManager();
-                    $res = $dbm->add($object->FromUserName, $username, $password);
-                    if ($res)
-                    {
-                        $resultStr='绑定成功!';
-                    }
-                }else{
-                    $resultStr='学号或密码不正确！';
-                }
-            }
-		else if($result==2){
-                $resultStr='绑定失败，不能重复绑定!';
-            }
-		else{
-			$resultStr='数据库错误!';
-		}	
+if (preg_match('#(^\d{10})\+#',$object->Content)){
+        $arr = explode('+',$object->Content);
+        $username =  $arr[0];
+        $password =  $arr[1];
+		$result=isBind($object->FromUserName,$cookie_file);
+	if($result==3){
+       $dbm = new DatabaseManager();
+       $res = $dbm->add($object->FromUserName, $username, $password);
+        if ($res){
+            $contentStr='绑定成功!';}
+            else{
+            $contentStr='学号或密码不正确！';
+	        }}else if($result==1){
+            $contentStr='绑定失败，不能重复绑定!';
+			unlink($cookie_file);}
+		    else{
+			$contentStr='数据库错误!';}
+       }else{
+       	$contentStr="你输入的文本无法匹配";
+       }
 	unlink($cookie_file);	
-	$contentStr="你发送的内容为：".$object->Content;
 	$resultStr=$this->transmitText($object,$contentStr);
 	return $resultStr;
 }
 //处理接收事件
-private function receiveEvent($object)
+private function receiveEvent($object,$cookie_file)
 {
 	$contentStr="";
 	switch($object->Event)
@@ -161,6 +156,7 @@ private function receiveEvent($object)
 				}
 				else{
 				$contentStr='请先绑定账户！';	
+				unlink($cookie_file);
 				}				
 			break;
 			case 'btn_reward':
@@ -174,7 +170,8 @@ private function receiveEvent($object)
 				unlink($cookie_file);
 				}
 				else{
-				$contentStr='请先绑定账户！';	
+				$contentStr='请先绑定账户！';
+				unlink($cookie_file);
 				}				
 			break;
 			case 'btn_wrongdoing':
@@ -188,7 +185,8 @@ private function receiveEvent($object)
 				unlink($cookie_file);
 				}
 				else{
-				$contentStr='请先绑定账户！';	
+				$contentStr='请先绑定账户！';
+				unlink($cookie_file);	
 				}				
 			break;
 			case 'btn_workattendance':
@@ -202,7 +200,8 @@ private function receiveEvent($object)
 				unlink($cookie_file);
 				}
 				else{
-				$contentStr='请先绑定账户！';	
+				$contentStr='请先绑定账户！';
+				unlink($cookie_file);			
 				}
 			break;
 			case 'btn_schedule':
@@ -216,7 +215,8 @@ private function receiveEvent($object)
 				unlink($cookie_file);
 				}
 				else{
-				$contentStr='请先绑定账户！';	
+				$contentStr='请先绑定账户！';
+				unlink($cookie_file);			
 				}
 			break;
 			case 'btn_exam';
@@ -230,7 +230,8 @@ private function receiveEvent($object)
 				unlink($cookie_file);
 				}
 				else{
-				$contentStr='请先绑定账户！';	
+				$contentStr='请先绑定账户！';
+				unlink($cookie_file);			
 				}
 			break;
 			case 'btn_score';
@@ -244,7 +245,8 @@ private function receiveEvent($object)
 				unlink($cookie_file);
 				}
 				else{
-				$contentStr='请先绑定账户！';	
+				$contentStr='请先绑定账户！';
+				unlink($cookie_file);	
 				}
 			break;
 		  }
@@ -267,7 +269,9 @@ private function receiveEvent($object)
 <Content><![CDATA[%s]]></Content>
 <FuncFlag>%d</FuncFlag>
 </xml>";
-        $resultStr = sprintf($textTpl, $object->FromUserName, $object->ToUserName, time(), $content,
-		$funcFlag);
-        return $resultStr;
-    }?>
+    $resultStr = sprintf($textTpl, $object->FromUserName, $object->ToUserName, time(), $content,
+    $funcFlag);
+    return $resultStr;
+    }
+}
+?>

@@ -67,7 +67,7 @@ $jsonmenu = '{
                     "key": "btn_bind"
                 }, 
                 {
-                    "name": "绑定账号", 
+                    "name": "解绑账号", 
                     "type": "click", 
                     "key": "btn_unbind"
                 }

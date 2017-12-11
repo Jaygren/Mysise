@@ -24,8 +24,7 @@ require_once 'sise/getWrongdoing.php';
 $usernmae="1540129480";
 $password="8465213JIANlove";
 $post_fields=getLoginInfo($usernmae,$password);
-//$cookie_file = tempnam("./","cookie");//cookie的文件保存路径
-$cookie_file = dirname(__FILE__) . '/cookie_oschina.txt';
+$cookie_file = tempnam("./","cookie");//cookie的文件保存路径
 //------------------------------------------------------------
 
 
@@ -115,5 +114,5 @@ echo "8:".$str;
 
 
 //------------------------------------------------------------
-//unlink($cookie_file);
+unlink($cookie_file);
 ?>

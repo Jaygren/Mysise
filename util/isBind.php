@@ -4,10 +4,11 @@
 function isBind($openid,$cookie_file)
 {
     $dbm = new DatabaseManager();
+	$data = $dbm->query($openid)->fetch();
     $result = $dbm->query($openid);
     if ($result->rowCount()){
-    $usernmae=$result["username"];
-	$password=$result["password"];
+    $usernmae=$data["username"];
+	$password=$data["password"];
 //------------------------------------------------------------	
 $post_fields=getLoginInfo($usernmae,$password);
 
@@ -28,7 +29,6 @@ if(issetLogined($content)=="登录成功"){
 	return 1;
 }else{
 	return 2;
-	unlink($cookie_file);
 }
 	}
    return 3;
