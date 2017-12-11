@@ -21,8 +21,9 @@ require_once 'sise/getScore.php';
 require_once 'sise/getReward.php';
 require_once 'sise/getWrongdoing.php';
 
-$usernmae="1540129480";
-$password="8465213JIANlove";
+//自己填
+$usernmae="";
+$password="";
 $post_fields=getLoginInfo($usernmae,$password);
 $cookie_file = tempnam("./","cookie");//cookie的文件保存路径
 //------------------------------------------------------------
